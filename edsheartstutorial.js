@@ -24,7 +24,8 @@ const DIRECTIONS = {
 define([
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
-    "ebg/counter"
+    "ebg/counter",
+	"ebg/stock"     /// <==== HERE
 ],
 function (dojo, declare) {
     return declare("bgagame.edsheartstutorial", ebg.core.gamegui, {
@@ -33,8 +34,9 @@ function (dojo, declare) {
               
             // Here, you can init the global variables of your user interface
             // Example:
-            // this.myGlobalValue = 0;
-
+			this.cardwidth = 72;
+			this.cardheight = 96;
+			this.playerHand = null;
         },
         
         /*
@@ -55,6 +57,7 @@ function (dojo, declare) {
             console.log( "Starting game setup" );
 
             // TODO: Set up your game interface here, according to "gamedatas"
+			
 			let playerTables = Object.values(gamedatas.players).map((player, index) => ` 
 				<div class="playertable whiteblock playertable_${DIRECTIONS[Object.values(gamedatas.players).length][index]}">
 					<div class="playertablename" style="color:#${player.color};"><span class="dealer_token" id="dealer_token_p${player.id}">?? </span>${player.name}</div>
@@ -76,6 +79,26 @@ function (dojo, declare) {
 
 					            `);
 
+			// Player hand
+			this.playerHand = new ebg.stock();
+			this.playerHand.create( this, $('myhand'), this.cardwidth, this.cardheight );
+
+			this.playerHand.image_items_per_row = 13; // 13 images to a row
+
+			// Create cards types:
+			for (var color = 1; color <= 4; color++)
+			{
+				for (var value = 2; value <= 14; value++)
+				{
+					var card_type_id = this.getCardUniqueId(color, value);
+					this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.jpg', card_type_id);
+				}
+			}
+
+			// 2 = hearts, 5 is 5, and 42 is the card id, which normally would come from db
+			this.playerHand.addToStockWithId( this.getCardUniqueId( 2, 5 ), 42 );
+
+			dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
 			this.setupNotifications();
 
             console.log( "Ending game setup" );
@@ -161,6 +184,8 @@ function (dojo, declare) {
                 }
             }
         },        
+		
+
 
         ///////////////////////////////////////////////////
         //// Utility methods
@@ -171,8 +196,10 @@ function (dojo, declare) {
             script.
         
         */
-
-
+		// Get card unique identifier based on its color and value
+		getCardUniqueId : function(color, value) {
+			return (color - 1) * 13 + (value - 2);
+		},
         ///////////////////////////////////////////////////
         //// Player's action
         
@@ -186,20 +213,24 @@ function (dojo, declare) {
             _ make a call to the game server
         
         */
-        
-        // Example:
-        
-        onCardClick: function( card_id )
-        {
-            console.log( 'onCardClick', card_id );
+        onPlayerHandSelectionChanged: function() {
+            var items = this.playerHand.getSelectedItems();
 
-            this.bgaPerformAction("actPlayCard", { 
-                card_id,
-            }).then(() =>  {                
-                // What to do after the server call if it succeeded
-                // (most of the time, nothing, as the game will react to notifs / change of state instead)
-            });        
-        },    
+            if (items.length > 0) {
+                if (this.checkAction('actPlayCard', true)) {
+                    // Can play a card
+
+                    var card_id = items[0].id;
+                    console.log("on playCard "+card_id);
+
+                    this.playerHand.unselectAll();
+                } else if (this.checkAction('actGiveCards')) {
+                    // Can give cards => let the player select some cards
+                } else {
+                    this.playerHand.unselectAll();
+                }
+            }
+        },
 
         
         ///////////////////////////////////////////////////
