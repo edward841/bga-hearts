@@ -54,15 +54,32 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" );
 
+            // Setting up player boards
+//            Object.values(gamedatas.players).forEach(player => {
+//                // example of setting up players boards
+//                this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
+//                    <div id="player-counter-${player.id}">A player counter</div>
+//                `);
+//
+//                // example of adding a div for each player
+//                document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
+//                    <div id="player-table-${player.id}">
+//                        <strong>${player.name}</strong>
+//                        <div>Player zone content goes here</div>
+//                    </div>
+//                `);
+//            });
+
             // TODO: Set up your game interface here, according to "gamedatas"
-			let playerTables = Object.values(gamedatas.players).map((player, index) => ` 
-				<div class="playertable whiteblock playertable_${DIRECTIONS[Object.values(gamedatas.players).length][index]}">
+			let playerTablesModified = Object.values(gamedatas.players).map((player, index) => ` <div class="playertable whiteblock playertable_${DIRECTIONS[Object.values(gamedatas.players).length][index]}">
 					<div class="playertablename" style="color:#${player.color};"><span class="dealer_token" id="dealer_token_p${player.id}">?? </span>${player.name}</div>
 					<div class="playertablecard" id="playertablecard_${player.id}"></div>
 					<div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
 				</div>
 			   `).join('');
 		
+			let playerTables = `Player count: ${Object.values(gamedatas.players).length}`;
+
 			document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
 <div id="playertables">${playerTables}</div>
 
@@ -76,6 +93,17 @@ function (dojo, declare) {
 
 					            `);
 
+//			document.getElementById('playertables').insertAdjacentHTML('beforeend',
+//				Object.values(gamedatas.players).map((player, index) => `
+//					<div class="playertable whiteblock playertable_${DIRECTIONS[orderedPlayers.length][index]}">
+//					<div class="playertablename" style="color:#${player.color};"><span class="dealer_token" id="dealer_token_p${player.id}">Î
+//
+//					v class="playertablecard" id="playertablecard_${player.id}"></div>
+//					<div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
+//					</div>
+//				`).join('')
+//			);
+//
 			this.setupNotifications();
 
             console.log( "Ending game setup" );
