@@ -67,9 +67,21 @@ class Game extends \Table
 	/*********************************
 	*	Player state actions:
 	*/
-    function actPlayCard(int $card_id) {
+	function actPlayCard(int $card_id) {
         $player_id = $this->getActivePlayerId();
-        throw new \BgaUserException($this->_("Not implemented: ") . "$player_id plays $card_id");
+        $this->cards->moveCard($card_id, 'cardsontable', $player_id);
+        // XXX check rules here
+        $currentCard = $this->cards->getCard($card_id);
+        // And notify
+        $this->notify->all('playCard', clienttranslate('${player_name} plays ${value_displayed} ${color_displayed}'), array (
+                'i18n' => array ('color_displayed','value_displayed' ),'card_id' => $card_id,'player_id' => $player_id,
+                'player_name' => $this->getActivePlayerName(),
+                'value' => $currentCard ['type_arg'],
+                'value_displayed' => $this->values_label [$currentCard ['type_arg']],
+                'color' => $currentCard ['type'],
+                'color_displayed' => $this->colors [$currentCard ['type']] ['name'] ));
+        // Next player
+        $this->gamestate->nextState('playCard');
     }
 	
 	/*********************************
@@ -113,11 +125,23 @@ class Game extends \Table
             // Move all cards to "cardswon" of the given player
             $best_value_player_id = $this->activeNextPlayer(); // TODO figure out winner of trick
             $this->cards->moveAllCardsInLocation('cardsontable', 'cardswon', null, $best_value_player_id);
-        
+			
+			// Notify
+			// Note: we use 2 notifications here in order we can pause the display during the first notification
+			//  before we move all cards to the winner (during the second)
+			$players = $this->loadPlayersBasicInfos();
+			$this->notify->all( 'trickWin', clienttranslate('${player_name} wins the trick'), array(
+				'player_id' => $best_value_player_id,
+				'player_name' => $players[ $best_value_player_id ]['player_name']
+			) );            
+			$this->notify->all( 'giveAllCardsToPlayer','', array(
+				'player_id' => $best_value_player_id
+			) );
+			
             if ($this->cards->countCardInLocation('hand') == 0) {
                 // End of the hand
                 $this->gamestate->nextState("endHand");
-            } else {
+            } else { 
                 // End of the trick
                 $this->gamestate->nextState("nextTrick");
             }
