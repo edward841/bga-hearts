@@ -180,30 +180,17 @@ function (dojo, declare) {
         // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
         //                        action status bar (ie: the HTML links in the status bar).
         //        
-        onUpdateActionButtons: function( stateName, args )
-        {
-            console.log( 'onUpdateActionButtons: '+stateName, args );
-                      
-            if( this.isCurrentPlayerActive() )
-            {            
-                switch( stateName )
-                {
-                 case 'playerTurn':    
-                    const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
+		onUpdateActionButtons: function (stateName, args) {
+		  console.log("onUpdateActionButtons: " + stateName, args);
 
-                    // Add test action buttons in the action status bar, simulating a card click:
-                    playableCardsIds.forEach(
-                        cardId => this.statusBar.addActionButton(_('Play card with id ${card_id}').replace('${card_id}', cardId), () => this.onCardClick(cardId))
-                    ); 
-
-                    this.statusBar.addActionButton(_('Pass'), () => this.bgaPerformAction("actPass"), { color: 'secondary' }); 
-                    break;
-                }
-            }
-        },        
+		  if (this.isCurrentPlayerActive()) {
+			switch (stateName) {
+			  case "playerTurn":
+				break;
+			}
+		  }
+		},  
 		
-
-
         ///////////////////////////////////////////////////
         //// Utility methods
         
